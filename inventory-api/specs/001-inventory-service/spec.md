@@ -2,8 +2,17 @@
 
 **Feature branch**: `001-inventory-service`
 **Created**: 2026-11-04
-**Status**: Draft
+**Status**: Clarified
 **Input**: "A growing online retailer sells from three warehouses. Their storefront, warehouse scanners and ERP each keep their own stock numbers, so they oversell during sales and nobody trusts the counts. They want one inventory service that every system calls: it tracks stock per warehouse, holds stock for orders at checkout, and never sells what isn't there."
+
+## Clarifications
+
+### Session 2026-11-04
+- Q: How long does a checkout hold last before it expires? → A: 15 minutes by default; the caller may choose 1 to 120 minutes.
+- Q: Can one hold cover several products in the same order? → A: Yes. A hold has one or more lines in one warehouse and succeeds or fails as a whole.
+- Q: Are transfers in transit for a while, or instant? → A: Instant in this version. In-transit stock is out of scope.
+- Q: How long are idempotency keys remembered? → A: 24 hours, per calling client.
+- Q: Who may record count corrections? → A: Any caller with write permission, and a reason is required.
 
 ## User scenarios and testing *(mandatory)*
 
@@ -35,6 +44,7 @@ When a shopper checks out, the storefront holds the units for their order. The h
 
 **Acceptance scenarios**
 1. **Given** 5 available and 10 shoppers each trying to hold 1 at the same moment, **then** exactly 5 holds succeed and 5 are told the item is out of stock.
+4. **Given** an order with two products where the second is out of stock, **when** a hold is requested, **then** nothing is held for either product.
 2. **Given** a hold that is not confirmed in time, **then** it expires and the units become available again.
 3. **Given** a confirmed or released hold, **when** someone tries to confirm or release it again, **then** they are told it is no longer active.
 
@@ -56,8 +66,8 @@ Buyers see which products have fallen to or below their reorder point.
 - **FR-002**: Report on-hand, reserved and available stock per product, per warehouse and in total.
 - **FR-003**: Record receive, ship, transfer and adjust movements in an append-only ledger with who, when and why.
 - **FR-004**: The system MUST NOT let on-hand or available stock go below zero, under any concurrency.
-- **FR-005**: Create, confirm and release holds, and expire unconfirmed holds.
-- **FR-006**: All writes accept an idempotency key.
+- **FR-005**: Create multi-line holds in one warehouse (all or nothing), confirm them into shipments, release them, and expire unconfirmed holds after 15 minutes by default (1 to 120 allowed).
+- **FR-006**: All writes accept an idempotency key, remembered for 24 hours per client.
 - **FR-007**: List products at or below their reorder point.
 - **FR-008**: Callers authenticate; reading and writing are separate permissions.
 - **FR-009**: Errors are machine-readable and say what went wrong.
@@ -67,7 +77,7 @@ Buyers see which products have fallen to or below their reorder point.
 - **Warehouse**: code, name.
 - **Stock level**: on-hand and reserved for one product in one warehouse.
 - **Movement**: an immutable record of one change to on-hand stock.
-- **Hold**: units reserved for an order, with status and expiry.
+- **Hold**: units reserved for an order in one warehouse, with one or more lines, a status and an expiry.
 
 ## Success criteria *(mandatory)*
 - **SC-001**: Zero oversells in a concurrency test of simultaneous holds, run on every build.
