@@ -8,7 +8,7 @@ A multi-warehouse inventory API for an online retailer that was overselling duri
 
 This project follows the [Spec Kit](https://github.com/github/spec-kit) workflow, and the git history shows each step in order:
 
-| Step | Spec Kit command | Output |
+| Step | Spec Kit phase | Output |
 |---|---|---|
 | 1 | `/speckit.constitution` | [Constitution](.specify/memory/constitution.md): six principles, such as "stock can never go negative" and "every response matches the contract" |
 | 2 | `/speckit.specify` | [Spec](specs/001-inventory-service/spec.md): user stories, acceptance scenarios, requirements, success criteria. No technology. |
