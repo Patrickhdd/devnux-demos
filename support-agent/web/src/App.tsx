@@ -8,8 +8,8 @@ const SESSION_KEY = 'harbor.session';
 function Logo() {
   return (
     <a className="brand" href="/">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" /><path d="M16 6l7 11h-4l5 8H8l5-8H9z" /></svg>
-      Harbor &amp; Pine
+      <svg viewBox="7 5 18 22" aria-hidden="true"><path d="M16 5l7 11h-4l5 9H8l5-9H9z" /><path d="M14.5 25h3v2h-3z" /></svg>
+      Harbor <span className="amp">&amp;</span> Pine
     </a>
   );
 }
@@ -22,6 +22,7 @@ export default function App() {
 
   return (
     <div className="shell">
+      <p className="strip">{isStaff ? 'Staff only. Everything here is demo data.' : 'Help centre. Ask about an order, a return or delivery.'}</p>
       <header className="top">
         <Logo />
         <nav>
@@ -40,7 +41,8 @@ export default function App() {
         )}
       </main>
       <footer>
-        Demo app by <a href="https://devnux.tech">Devnux</a> · Claude agent with tools, Node.js, PostgreSQL and React · Harbor &amp; Pine is a fictional store
+        <span>Harbor &amp; Pine is a made-up shop for this demo.</span>
+        <span>Built by <a href="https://devnux.tech">Devnux</a> with a Claude agent, Node.js, PostgreSQL and React</span>
       </footer>
     </div>
   );
@@ -53,9 +55,9 @@ function PickCustomer({ onPick }: { onPick: (s: Session) => void }) {
 
   return (
     <section className="pick">
-      <h1>How can we help?</h1>
-      <p className="lead">Chat with our assistant about orders, returns, shipping and more. It can look up your orders, start a refund for our team to review, and hand you to a person any time.</p>
-      <h2>Sign in as a demo customer</h2>
+      <h1>Need a hand with an order?</h1>
+      <p className="lead">Our assistant can look up your orders, explain returns and delivery, and start a refund for our team to check. If you'd rather talk to a person, just say so.</p>
+      <h2>Pick a demo customer</h2>
       {error && <p className="error">{error}</p>}
       <div className="people">
         {customers.map((c) => (

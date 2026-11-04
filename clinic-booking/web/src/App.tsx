@@ -18,7 +18,7 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand"><span className="logo" aria-hidden="true">+</span> Northside Clinic</div>
+        <div className="brand"><span className="logo" aria-hidden="true">·</span> Northside Clinic <small>Family practice since 1998</small></div>
         {session && (
           <nav className="tabs">
             {session.user.role === 'PATIENT' && (<>
@@ -45,8 +45,8 @@ export default function App() {
       </main>
 
       <footer className="foot">
-        Demo app by <a href="https://devnux.tech" rel="noopener">Devnux</a> · Spring Boot, React and PostgreSQL ·
-        Times shown in clinic time (New York)
+        <span>Northside Clinic is a made-up practice. Times are clinic time (New York).</span>
+        <span>A demo by <a href="https://devnux.tech" rel="noopener">Devnux</a>, built with Spring Boot, React and PostgreSQL</span>
       </footer>
     </div>
   );

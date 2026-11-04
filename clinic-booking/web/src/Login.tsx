@@ -26,11 +26,15 @@ export default function Login({ onSignedIn }: { onSignedIn: (s: Session) => void
   return (
     <div className="login">
       <section className="login-intro">
-        <h1>Book a doctor in under a minute</h1>
-        <p>Pick a doctor, choose a free time, and you're booked. You'll see every appointment in one place and can cancel with one click.</p>
+        <h1>See a doctor <em>this week</em>, not next month</h1>
+        <p>Choose who you'd like to see, pick a time that suits you, and that's it. If plans change, you can cancel from your appointments page.</p>
+        <dl className="hours">
+          <dt>Mon to Fri</dt><dd>8:30 to 17:00</dd>
+          <dt>Weekends</dt><dd>Closed</dd>
+        </dl>
         <div className="demo-box">
-          <b>Try the demo</b>
-          <p>Sign in with one click as a sample patient or doctor. The password for both is <code>demo1234</code>.</p>
+          <b>Just looking around?</b>
+          <p>Sign in as a sample patient or doctor. Both use the password <code>demo1234</code>.</p>
           <div className="demo-buttons">
             {DEMO.map((d) => (
               <button key={d.email} className="btn ghost" disabled={busy} onClick={() => run(() => api.login(d.email, 'demo1234'))}>
