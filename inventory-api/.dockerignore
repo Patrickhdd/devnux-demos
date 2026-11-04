@@ -1,4 +1,3 @@
 target/
+infra/
 .terraform/
-*.tfstate*
-specs/*/checklists

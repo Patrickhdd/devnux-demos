@@ -2,7 +2,7 @@
 
 **Feature branch**: `001-inventory-service`
 **Created**: 2026-11-04
-**Status**: Clarified
+**Status**: Implemented
 **Input**: "A growing online retailer sells from three warehouses. Their storefront, warehouse scanners and ERP each keep their own stock numbers, so they oversell during sales and nobody trusts the counts. They want one inventory service that every system calls: it tracks stock per warehouse, holds stock for orders at checkout, and never sells what isn't there."
 
 ## Clarifications

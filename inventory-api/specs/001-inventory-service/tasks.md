@@ -39,10 +39,10 @@ Legend: `[P]` can run in parallel (different files). `[USn]` maps to a user stor
 
 ## Phase 6: Polish
 - [x] T024 [P] Serve the contract at `/openapi.yaml`
-- [ ] T025 [P] Dockerfile and Docker Compose
-- [ ] T026 [P] Terraform for Cloud Run, Cloud SQL, Artifact Registry and Secret Manager in `infra/`
-- [ ] T027 CI: `mvn verify`, image build, `terraform validate`
-- [ ] T028 README and run quickstart.md end to end
+- [x] T025 [P] Dockerfile and Docker Compose
+- [x] T026 [P] Terraform for Cloud Run, Cloud SQL, Artifact Registry and Secret Manager in `infra/`
+- [x] T027 CI: `mvn verify`, image build, `terraform validate`
+- [x] T028 README and run quickstart.md end to end
 
 ## Dependencies
 Setup → Foundation → US1+US2 → US3 → US4 → Polish. US3 needs movements (confirm records SHIP). US4 only needs stock levels.

@@ -6,6 +6,6 @@ Working demo projects by [Devnux](https://devnux.tech). Each one runs locally wi
 |---|---|---|
 | [Clinic booking](clinic-booking/) | Patients book visits, doctors run their week. Double booking is blocked by the database itself, tested under concurrent load. | Java 21, Spring Boot 4, PostgreSQL, React, Docker |
 | [AI support agent](support-agent/) | A Claude agent that looks up real orders, files refunds for staff review and escalates to people, with guardrails enforced in code and a full audit trail. | TypeScript, Node.js, Claude API, PostgreSQL, React, Docker |
-| Spec-driven inventory API | *Coming soon* | |
+| [Spec-driven inventory API](inventory-api/) | A multi-warehouse inventory service built step by step with Spec Kit, from constitution to failing tests to code. Checkout holds that can't oversell, an append-only ledger, idempotent writes, and an OpenAPI contract checked on every build. | Java 21, Spring Boot 4, PostgreSQL, OpenAPI, Terraform (Cloud Run, Cloud SQL) |
 
 Questions or a project in mind? [devnux.tech/contact](https://devnux.tech/contact/)
