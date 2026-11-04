@@ -18,23 +18,23 @@ Legend: `[P]` can run in parallel (different files). `[USn]` maps to a user stor
 - [x] T009 [P] Products and warehouses (create, list, get, update) in `catalog/`
 
 ## Phase 3: US1 + US2, know what can be sold and record changes (P1) 🎯 MVP
-- [ ] T010 [US1] Test: availability per warehouse and total; unknown product 404
-- [ ] T011 [US2] Test: receive, ship, adjust, transfer; overship rejected with nothing changed; transfer is all-or-nothing
-- [ ] T012 [US2] Test: retry with the same Idempotency-Key applies once and replays; different body returns 422
-- [ ] T013 [US2] Test: stock levels equal the sum of the ledger after a mixed workload
+- [x] T010 [US1] Test: availability per warehouse and total; unknown product 404
+- [x] T011 [US2] Test: receive, ship, adjust, transfer; overship rejected with nothing changed; transfer is all-or-nothing
+- [x] T012 [US2] Test: retry with the same Idempotency-Key applies once and replays; different body returns 422
+- [x] T013 [US2] Test: stock levels equal the sum of the ledger after a mixed workload
 - [ ] T014 [US1] Stock query in `stock/StockService.java` and `GET /products/{code}/stock`
 - [ ] T015 [US2] Movements with conditional updates in `stock/MovementService.java`, `POST /movements`, `GET /products/{code}/movements`
 
 ## Phase 4: US3, hold stock at checkout (P1)
-- [ ] T016 [US3] Test: hold reduces available; confirm ships; release restores; second confirm 409
-- [ ] T017 [US3] Test: 10 concurrent holds of 1 against 5 available, exactly 5 succeed
-- [ ] T018 [US3] Test: multi-line hold with one short line holds nothing
-- [ ] T019 [US3] Test: expired hold can't be confirmed and the job releases it
+- [x] T016 [US3] Test: hold reduces available; confirm ships; release restores; second confirm 409
+- [x] T017 [US3] Test: 10 concurrent holds of 1 against 5 available, exactly 5 succeed
+- [x] T018 [US3] Test: multi-line hold with one short line holds nothing
+- [x] T019 [US3] Test: expired hold can't be confirmed and the job releases it
 - [ ] T020 [US3] `holds/HoldService.java` with ordered locking, `holds/HoldController.java`
 - [ ] T021 [US3] Expiry job with `FOR UPDATE SKIP LOCKED` in `holds/HoldExpiryJob.java`
 
 ## Phase 5: US4, restock alerts (P2)
-- [ ] T022 [US4] Test: product at or below reorder point appears with shortfall
+- [x] T022 [US4] Test: product at or below reorder point appears with shortfall
 - [ ] T023 [US4] `GET /alerts/low-stock`
 
 ## Phase 6: Polish
