@@ -1,0 +1,42 @@
+# One command to run the whole demo:  docker compose up --build
+# Then open http://localhost:3001 (customer chat) and http://localhost:3001/staff (staff console, key: demo-staff)
+#
+# The assistant needs an Anthropic API key. Put it in a .env file next to this one:
+#   ANTHROPIC_API_KEY=sk-ant-...
+# Without it everything else works and the chat explains how to switch the assistant on.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: support
+      POSTGRES_USER: support
+      POSTGRES_PASSWORD: support
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U support -d support"]
+      interval: 3s
+      retries: 20
+
+  api:
+    build: ./server
+    environment:
+      DATABASE_URL: postgres://support:support@db:5432/support
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      AGENT_MODEL: ${AGENT_MODEL:-claude-opus-5-5}
+      AGENT_EFFORT: ${AGENT_EFFORT:-medium}
+      SESSION_SECRET: local-demo-session-secret-change-me
+      STAFF_KEY: ${STAFF_KEY:-demo-staff}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build: ./web
+    ports:
+      - "3001:80"
+    depends_on:
+      - api
+
+volumes:
+  db-data:

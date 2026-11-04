@@ -1,0 +1,48 @@
+name: support-agent
+
+on:
+  push:
+    paths: ["support-agent/**", ".github/workflows/support-agent.yml"]
+  pull_request:
+    paths: ["support-agent/**", ".github/workflows/support-agent.yml"]
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: support-agent/server
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: support-agent/server/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - name: Test (Testcontainers starts PostgreSQL; the model is scripted, no API key needed)
+        run: npm test
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: support-agent/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: support-agent/web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [server, web]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the images
+        run: docker compose -f support-agent/docker-compose.yml build

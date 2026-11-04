@@ -5,7 +5,7 @@ Working demo projects by [Devnux](https://devnux.tech). Each one runs locally wi
 | Demo | What it shows | Stack |
 |---|---|---|
 | [Clinic booking](clinic-booking/) | Patients book visits, doctors run their week. Double booking is blocked by the database itself, tested under concurrent load. | Java 21, Spring Boot 4, PostgreSQL, React, Docker |
-| AI support agent | *Coming soon* | |
+| [AI support agent](support-agent/) | A Claude agent that looks up real orders, files refunds for staff review and escalates to people, with guardrails enforced in code and a full audit trail. | TypeScript, Node.js, Claude API, PostgreSQL, React, Docker |
 | Spec-driven inventory API | *Coming soon* | |
 
 Questions or a project in mind? [devnux.tech/contact](https://devnux.tech/contact/)
