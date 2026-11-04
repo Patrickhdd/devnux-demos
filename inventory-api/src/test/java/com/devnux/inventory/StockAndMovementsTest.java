@@ -163,7 +163,10 @@ class StockAndMovementsTest extends ApiTestBase {
     }
 
     @Test
-    void theLedgerCannotBeEdited() {
+    void theLedgerCannotBeEdited() throws Exception {
+        receive("TENT-2P", "PDX", 10);
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> jdbc.sql("UPDATE movement_line SET delta = 1000").update())
+                .hasMessageContaining("append-only");
         org.assertj.core.api.Assertions.assertThatThrownBy(() -> jdbc.sql("DELETE FROM movement").update())
                 .hasMessageContaining("append-only");
     }

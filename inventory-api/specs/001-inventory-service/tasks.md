@@ -22,23 +22,23 @@ Legend: `[P]` can run in parallel (different files). `[USn]` maps to a user stor
 - [x] T011 [US2] Test: receive, ship, adjust, transfer; overship rejected with nothing changed; transfer is all-or-nothing
 - [x] T012 [US2] Test: retry with the same Idempotency-Key applies once and replays; different body returns 422
 - [x] T013 [US2] Test: stock levels equal the sum of the ledger after a mixed workload
-- [ ] T014 [US1] Stock query in `stock/StockService.java` and `GET /products/{code}/stock`
-- [ ] T015 [US2] Movements with conditional updates in `stock/MovementService.java`, `POST /movements`, `GET /products/{code}/movements`
+- [x] T014 [US1] Stock query in `stock/StockService.java` and `GET /products/{code}/stock`
+- [x] T015 [US2] Movements with conditional updates in `stock/MovementService.java`, `POST /movements`, `GET /products/{code}/movements`
 
 ## Phase 4: US3, hold stock at checkout (P1)
 - [x] T016 [US3] Test: hold reduces available; confirm ships; release restores; second confirm 409
 - [x] T017 [US3] Test: 10 concurrent holds of 1 against 5 available, exactly 5 succeed
 - [x] T018 [US3] Test: multi-line hold with one short line holds nothing
 - [x] T019 [US3] Test: expired hold can't be confirmed and the job releases it
-- [ ] T020 [US3] `holds/HoldService.java` with ordered locking, `holds/HoldController.java`
-- [ ] T021 [US3] Expiry job with `FOR UPDATE SKIP LOCKED` in `holds/HoldExpiryJob.java`
+- [x] T020 [US3] `holds/HoldService.java` with ordered locking, `holds/HoldController.java`
+- [x] T021 [US3] Expiry job with `FOR UPDATE SKIP LOCKED` in `holds/HoldExpiryJob.java`
 
 ## Phase 5: US4, restock alerts (P2)
 - [x] T022 [US4] Test: product at or below reorder point appears with shortfall
-- [ ] T023 [US4] `GET /alerts/low-stock`
+- [x] T023 [US4] `GET /alerts/low-stock`
 
 ## Phase 6: Polish
-- [ ] T024 [P] Serve the contract at `/openapi.yaml`
+- [x] T024 [P] Serve the contract at `/openapi.yaml`
 - [ ] T025 [P] Dockerfile and Docker Compose
 - [ ] T026 [P] Terraform for Cloud Run, Cloud SQL, Artifact Registry and Secret Manager in `infra/`
 - [ ] T027 CI: `mvn verify`, image build, `terraform validate`
