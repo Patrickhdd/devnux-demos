@@ -1,0 +1,518 @@
+openapi: 3.0.3
+info:
+  title: Inventory Service API
+  version: 1.0.0
+  description: |
+    Stock per warehouse, an append-only movement ledger, and checkout holds that can never oversell.
+
+    Authenticate with an `X-API-Key` header. Reads need the `inventory:read` scope and writes need `inventory:write`.
+    Every POST and PATCH accepts an `Idempotency-Key` header: a retry with the same key and body returns the original
+    response (with `Idempotent-Replayed: true`).
+servers:
+  - url: /api/v1
+security:
+  - apiKey: []
+tags:
+  - name: Products
+  - name: Warehouses
+  - name: Stock
+  - name: Movements
+  - name: Holds
+  - name: Alerts
+
+paths:
+  /products:
+    get:
+      tags: [Products]
+      summary: List products
+      operationId: listProducts
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        "200":
+          description: A page of products, ordered by code
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProductPage" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [Products]
+      summary: Create a product
+      operationId: createProduct
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewProduct" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/IdempotencyMismatch" }
+
+  /products/{code}:
+    parameters: [{ $ref: "#/components/parameters/ProductCode" }]
+    get:
+      tags: [Products]
+      summary: Get a product
+      operationId: getProduct
+      responses:
+        "200":
+          description: The product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Products]
+      summary: Change a product's name or reorder point
+      operationId: updateProduct
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProductChanges" }
+      responses:
+        "200":
+          description: The updated product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /products/{code}/stock:
+    parameters: [{ $ref: "#/components/parameters/ProductCode" }]
+    get:
+      tags: [Stock]
+      summary: Availability of a product, in total and per warehouse
+      operationId: getStock
+      responses:
+        "200":
+          description: Stock levels
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Availability" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /products/{code}/movements:
+    parameters: [{ $ref: "#/components/parameters/ProductCode" }]
+    get:
+      tags: [Movements]
+      summary: Movement history of a product, newest first
+      operationId: listMovements
+      parameters:
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 500, default: 100 } }
+      responses:
+        "200":
+          description: Movements
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Movement" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /warehouses:
+    get:
+      tags: [Warehouses]
+      summary: List warehouses
+      operationId: listWarehouses
+      responses:
+        "200":
+          description: All warehouses, ordered by code
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Warehouse" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+    post:
+      tags: [Warehouses]
+      summary: Create a warehouse
+      operationId: createWarehouse
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewWarehouse" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Warehouse" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /movements:
+    post:
+      tags: [Movements]
+      summary: Record a stock movement
+      description: |
+        - `RECEIVE`: `warehouseCode`, positive `quantity`.
+        - `SHIP`: `warehouseCode`, positive `quantity` no more than available.
+        - `ADJUST`: `warehouseCode`, non-zero `quantity` (negative to remove), and a `reason`. Cannot take on-hand below what is held.
+        - `TRANSFER`: `fromWarehouseCode`, `toWarehouseCode`, positive `quantity` no more than available in the source.
+      operationId: recordMovement
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewMovement" }
+      responses:
+        "201":
+          description: Recorded
+          headers:
+            Idempotent-Replayed: { $ref: "#/components/headers/IdempotentReplayed" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Movement" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/IdempotencyMismatch" }
+
+  /holds:
+    post:
+      tags: [Holds]
+      summary: Hold stock for an order
+      description: All lines are held in one warehouse, or none are.
+      operationId: createHold
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/NewHold" }
+      responses:
+        "201":
+          description: Held
+          headers:
+            Idempotent-Replayed: { $ref: "#/components/headers/IdempotentReplayed" }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Hold" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "422": { $ref: "#/components/responses/IdempotencyMismatch" }
+
+  /holds/{id}:
+    parameters: [{ $ref: "#/components/parameters/HoldId" }]
+    get:
+      tags: [Holds]
+      summary: Get a hold
+      operationId: getHold
+      responses:
+        "200":
+          description: The hold
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Hold" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /holds/{id}/confirm:
+    parameters: [{ $ref: "#/components/parameters/HoldId" }]
+    post:
+      tags: [Holds]
+      summary: Confirm a hold when the order ships
+      description: Removes the held units from stock and records a SHIP movement per line, referencing the order.
+      operationId: confirmHold
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      responses:
+        "200":
+          description: Confirmed
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Hold" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /holds/{id}/release:
+    parameters: [{ $ref: "#/components/parameters/HoldId" }]
+    post:
+      tags: [Holds]
+      summary: Release a hold, for example when the order is cancelled
+      operationId: releaseHold
+      parameters: [{ $ref: "#/components/parameters/IdempotencyKey" }]
+      responses:
+        "200":
+          description: Released
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Hold" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+
+  /alerts/low-stock:
+    get:
+      tags: [Alerts]
+      summary: Products at or below their reorder point
+      operationId: lowStock
+      responses:
+        "200":
+          description: Products to restock, largest shortfall first
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LowStockItem" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    ProductCode:
+      name: code
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Code" }
+    HoldId:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Any unique string up to 200 characters, remembered for 24 hours per API key.
+      schema: { type: string, minLength: 1, maxLength: 200 }
+
+  headers:
+    IdempotentReplayed:
+      description: Present and `true` when this response is a replay of an earlier request with the same key.
+      schema: { type: string, enum: ["true"] }
+
+  responses:
+    BadRequest:
+      description: The request is invalid
+      content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+    Unauthorized:
+      description: Missing or unknown API key
+      content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+    Forbidden:
+      description: The API key lacks the scope for this operation
+      content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+    NotFound:
+      description: The product, warehouse or hold does not exist
+      content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+    Conflict:
+      description: |
+        The request conflicts with current state. `code` is one of `insufficient-stock`, `hold-not-active`,
+        `duplicate`, `request-in-progress`.
+      content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+    IdempotencyMismatch:
+      description: The Idempotency-Key was already used for a different request
+      content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } }
+
+  schemas:
+    Code:
+      type: string
+      pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,39}$"
+      description: Letters, digits, `-` and `_`, up to 40 characters. Stored upper-case and matched case-insensitively.
+      example: TENT-2P
+
+    NewProduct:
+      type: object
+      additionalProperties: false
+      required: [code, name]
+      properties:
+        code: { $ref: "#/components/schemas/Code" }
+        name: { type: string, minLength: 1, maxLength: 200 }
+        reorderPoint: { type: integer, minimum: 0, default: 0 }
+
+    ProductChanges:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        reorderPoint: { type: integer, minimum: 0 }
+
+    Product:
+      type: object
+      required: [code, name, reorderPoint, createdAt]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        reorderPoint: { type: integer }
+        createdAt: { type: string, format: date-time }
+
+    ProductPage:
+      type: object
+      required: [items, page, size, total]
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/Product" } }
+        page: { type: integer }
+        size: { type: integer }
+        total: { type: integer }
+
+    NewWarehouse:
+      type: object
+      additionalProperties: false
+      required: [code, name]
+      properties:
+        code: { $ref: "#/components/schemas/Code" }
+        name: { type: string, minLength: 1, maxLength: 200 }
+
+    Warehouse:
+      type: object
+      required: [code, name, createdAt]
+      properties:
+        code: { type: string }
+        name: { type: string }
+        createdAt: { type: string, format: date-time }
+
+    StockLevel:
+      type: object
+      required: [warehouseCode, onHand, reserved, available]
+      properties:
+        warehouseCode: { type: string }
+        onHand: { type: integer, minimum: 0 }
+        reserved: { type: integer, minimum: 0 }
+        available: { type: integer, minimum: 0 }
+
+    Availability:
+      type: object
+      required: [productCode, onHand, reserved, available, warehouses]
+      properties:
+        productCode: { type: string }
+        onHand: { type: integer, minimum: 0 }
+        reserved: { type: integer, minimum: 0 }
+        available: { type: integer, minimum: 0 }
+        warehouses: { type: array, items: { $ref: "#/components/schemas/StockLevel" } }
+
+    MovementType:
+      type: string
+      enum: [RECEIVE, SHIP, ADJUST, TRANSFER]
+
+    NewMovement:
+      type: object
+      additionalProperties: false
+      required: [type, productCode, quantity]
+      properties:
+        type: { $ref: "#/components/schemas/MovementType" }
+        productCode: { $ref: "#/components/schemas/Code" }
+        warehouseCode: { $ref: "#/components/schemas/Code" }
+        fromWarehouseCode: { $ref: "#/components/schemas/Code" }
+        toWarehouseCode: { $ref: "#/components/schemas/Code" }
+        quantity: { type: integer, minimum: -1000000, maximum: 1000000 }
+        reason: { type: string, maxLength: 500 }
+        reference: { type: string, maxLength: 100, description: "Your document number, for example a purchase order." }
+
+    MovementLine:
+      type: object
+      required: [warehouseCode, delta]
+      properties:
+        warehouseCode: { type: string }
+        delta: { type: integer }
+
+    Movement:
+      type: object
+      required: [id, type, productCode, lines, createdBy, createdAt]
+      properties:
+        id: { type: integer, format: int64 }
+        type: { $ref: "#/components/schemas/MovementType" }
+        productCode: { type: string }
+        lines: { type: array, items: { $ref: "#/components/schemas/MovementLine" } }
+        reason: { type: string, nullable: true }
+        reference: { type: string, nullable: true }
+        holdId: { type: string, format: uuid, nullable: true }
+        createdBy: { type: string, description: "Name of the API key that recorded it." }
+        createdAt: { type: string, format: date-time }
+
+    NewHoldLine:
+      type: object
+      additionalProperties: false
+      required: [productCode, quantity]
+      properties:
+        productCode: { $ref: "#/components/schemas/Code" }
+        quantity: { type: integer, minimum: 1, maximum: 100000 }
+
+    NewHold:
+      type: object
+      additionalProperties: false
+      required: [orderReference, warehouseCode, lines]
+      properties:
+        orderReference: { type: string, minLength: 1, maxLength: 100 }
+        warehouseCode: { $ref: "#/components/schemas/Code" }
+        lines: { type: array, minItems: 1, maxItems: 100, items: { $ref: "#/components/schemas/NewHoldLine" } }
+        ttlMinutes: { type: integer, minimum: 1, maximum: 120, default: 15 }
+
+    HoldLine:
+      type: object
+      required: [productCode, quantity]
+      properties:
+        productCode: { type: string }
+        quantity: { type: integer }
+
+    Hold:
+      type: object
+      required: [id, orderReference, warehouseCode, status, lines, expiresAt, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        orderReference: { type: string }
+        warehouseCode: { type: string }
+        status: { type: string, enum: [ACTIVE, CONFIRMED, RELEASED, EXPIRED] }
+        lines: { type: array, items: { $ref: "#/components/schemas/HoldLine" } }
+        expiresAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+        closedAt: { type: string, format: date-time, nullable: true }
+
+    LowStockItem:
+      type: object
+      required: [productCode, name, reorderPoint, available, shortfall]
+      properties:
+        productCode: { type: string }
+        name: { type: string }
+        reorderPoint: { type: integer }
+        available: { type: integer }
+        shortfall: { type: integer, description: "reorderPoint minus available, at least 0" }
+
+    Problem:
+      type: object
+      description: RFC 9457 problem details
+      required: [title, status]
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        code: { type: string, description: "Stable machine-readable error code" }
+      additionalProperties: true
