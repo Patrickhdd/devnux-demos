@@ -5,17 +5,17 @@
 Legend: `[P]` can run in parallel (different files). `[USn]` maps to a user story.
 
 ## Phase 1: Setup
-- [ ] T001 Create Maven project `pom.xml` (Spring Boot 4, Java 21) with Web MVC, JDBC, Security, Validation, Actuator, Flyway, PostgreSQL
-- [ ] T002 [P] Add test dependencies: Testcontainers PostgreSQL, openapi-request-validator-mockmvc
-- [ ] T003 [P] `application.yml` with database, API keys and hold settings from environment
+- [x] T001 Create Maven project `pom.xml` (Spring Boot 4, Java 21) with Web MVC, JDBC, Security, Validation, Actuator, Flyway, PostgreSQL
+- [x] T002 [P] Add test dependencies: Testcontainers PostgreSQL, openapi-request-validator-mockmvc
+- [x] T003 [P] `application.yml` with database, API keys and hold settings from environment
 
 ## Phase 2: Foundation (blocks all stories)
-- [ ] T004 Flyway `V1__schema.sql`: all tables and constraints from data-model.md
-- [ ] T005 [P] API key authentication with read/write scopes in `config/SecurityConfig.java` and `config/ApiKeyFilter.java`
-- [ ] T006 [P] Problem-details error handling with stable `code` values in `web/ErrorHandling.java`
-- [ ] T007 Idempotency filter and store in `idempotency/`
-- [ ] T008 Test base class that validates every request and response against `contracts/openapi.yaml`
-- [ ] T009 [P] Products and warehouses (create, list, get, update) in `catalog/`
+- [x] T004 Flyway `V1__schema.sql`: all tables and constraints from data-model.md
+- [x] T005 [P] API key authentication with read/write scopes in `config/SecurityConfig.java` and `config/ApiKeyFilter.java`
+- [x] T006 [P] Problem-details error handling with stable `code` values in `web/ErrorHandling.java`
+- [x] T007 Idempotency filter and store in `idempotency/`
+- [x] T008 Test base class that validates every request and response against `contracts/openapi.yaml`
+- [x] T009 [P] Products and warehouses (create, list, get, update) in `catalog/`
 
 ## Phase 3: US1 + US2, know what can be sold and record changes (P1) 🎯 MVP
 - [ ] T010 [US1] Test: availability per warehouse and total; unknown product 404

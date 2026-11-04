@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: inventory-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/inventory}
+    username: ${DATABASE_USER:inventory}
+    password: ${DATABASE_PASSWORD:inventory}
+  flyway:
+    locations: classpath:db/migration
+  mvc:
+    problemdetails:
+      enabled: true
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+inventory:
+  holds:
+    default-ttl: 15m
+    expiry-interval: 30s
+  idempotency:
+    retention: 24h
+  # API keys as comma-separated "name:key:scopes" entries, where scopes is "read" or "read+write".
+  # The defaults are for local development only. Set INVENTORY_API_KEYS in every real environment.
+  api-keys: ${INVENTORY_API_KEYS:storefront-dev:dev-write-key:read+write,reports-dev:dev-read-key:read}

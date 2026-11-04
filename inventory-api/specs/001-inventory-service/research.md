@@ -14,7 +14,7 @@
 - **Alternatives**: Computing stock from the ledger on every read (slow as history grows); event sourcing framework (heavy for one service).
 
 ## R4. Idempotency
-- **Decision**: A servlet filter for POST/PATCH under `/api/v1` with an `Idempotency-Key` header. It stores `(client, key, request hash)` before the request runs and the response after. Same key and body replays the stored response with `Idempotent-Replayed: true`; same key with a different body returns 422; a request still in progress returns 409. 5xx responses are not stored, so they can be retried. Records older than 24 hours are deleted hourly.
+- **Decision**: A servlet filter for POST/PATCH under `/api/v1` with an `Idempotency-Key` header. It stores `(client, key, request hash)` before the request runs and the response after. Same key and body replays the stored response with `Idempotent-Replayed: true`; same key with a different body returns 422; a request still in progress returns 409. Only successful (2xx) responses are stored, so a request that failed (for example out of stock) can be retried with the same key once the problem is fixed. Records older than 24 hours are deleted hourly.
 - **Rationale**: One implementation covers every write endpoint, and the unique primary key makes concurrent duplicates safe.
 
 ## R5. Data access
